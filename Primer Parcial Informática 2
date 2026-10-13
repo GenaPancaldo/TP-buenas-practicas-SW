@@ -1,0 +1,162 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h> 
+
+
+struct Maquina {
+	char NombreMaquina[50];
+	float tension;
+	float corriente;
+};
+
+void mostrarDosMaximos(struct Maquina *lista, int cantidad) {
+	if (cantidad < 2) {
+		printf("\n[!] Necesitas registrar al menos 2 maquinas para calcular los 2 maximos.\n");
+		return;
+	}
+	
+	int posMax1 = 0, posMax2 = -1;
+	float max1 = lista[0].tension * lista[0].corriente;
+	float max2 = -1.0;
+	
+	for (int i = 1; i < cantidad; i++) {
+		float potenciaActual = lista[i].tension * lista[i].corriente;
+		
+		if (potenciaActual > max1) {
+			max2 = max1;
+			posMax2 = posMax1;
+			max1 = potenciaActual;
+			posMax1 = i;
+		} else if (potenciaActual > max2) {
+			max2 = potenciaActual; 
+			posMax2 = i;
+		}
+	}
+	
+	if (posMax2 == -1) {
+		posMax2 = 1;
+		max2 = lista[1].tension * lista[1].corriente;
+	}
+	
+	printf("\n=== LAS 2 MAQUINAS CON MAYOR CONSUMO ===\n");
+	printf("1. %s con %.1f W\n", lista[posMax1].NombreMaquina, max1);
+	printf("2. %s con %.1f W\n", lista[posMax2].NombreMaquina, max2);
+}
+
+void buscarMaquinaPorNombre(struct Maquina *lista, int cantidad) {
+	char buscador[50];
+	int encontrado = 0;
+	
+	printf("\nIngrese el nombre de la maquina que desea buscar: ");
+	scanf("%s", buscador);
+	
+	for (int i = 0; i < cantidad; i++) {
+		if (strcmp(lista[i].NombreMaquina, buscador) == 0) {
+			float potencia = lista[i].tension * lista[i].corriente;
+			printf("\n[Maquina Encontrada]\n");
+			printf("Nombre: %s\n", lista[i].NombreMaquina);
+			printf("Tension: %.1f V\n", lista[i].tension);
+			printf("Corriente: %.1f A\n", lista[i].corriente);
+			printf("Potencia: %.1f W\n", potencia);
+			encontrado = 1;
+			break;
+		}
+	}
+	
+	if (!encontrado) {
+		printf("\n[!] No se encontro ninguna maquina con el nombre: %s\n", buscador);
+	}
+}
+
+void agregarMasMaquinas(struct Maquina **lista, int *cantidadActual) {
+	int maquinasNuevas;
+	printf("¿Cuántas máquinas desea agregar?: ");
+	scanf("%d", &maquinasNuevas);
+	if (maquinasNuevas <= 0) {
+		printf("[!] Cantidad no valida.\n");
+		return;
+	}
+	
+	int nuevoTotal = *cantidadActual + maquinasNuevas;
+	struct Maquina *temporal = (struct Maquina *) realloc(*lista, nuevoTotal * sizeof(struct Maquina));
+	*lista = temporal;
+	
+	for(int i= *cantidadActual; i<nuevoTotal; i++) {
+		printf("\n--- Datos de la nueva maquina %d ---\n", i + 1);
+		printf("Nombre (sin espacios, por favor): ");
+		scanf("%s", (*lista)[i].NombreMaquina);
+		printf("Tension (en Volts): ");
+		scanf("%f", &(*lista)[i].tension);
+		printf("Corriente (en Amperes): ");
+		scanf("%f", &(*lista)[i].corriente);
+	}
+	*cantidadActual = nuevoTotal;
+}
+
+int main() {
+	int cantidad = 0;
+	int opcion = 0;
+	struct Maquina *listaMaquinas = NULL;
+	
+	printf("¿Cuántas máquinas desea registrar en total?: ");
+	scanf("%d", &cantidad);
+	
+	listaMaquinas = (struct Maquina *) malloc(cantidad * sizeof(struct Maquina));
+	
+	while (opcion != 6) {
+		printf("\n PLANILLA DE ADMINISTRACION DE MAQUINAS \n");
+		printf("\n--- MENU DE OPCIONES ---\n");
+		printf("1. Cargar datos de las maquinas\n");
+		printf("2. Mostrar reporte del consumo\n");
+		printf("3. Mostrar las 2 maquinas de mayor consumo\n");
+		printf("4. Buscar maquina\n");
+		printf("5. Agregar nuevas maquinas\n");
+		printf("6. Salir\n");
+		printf("Seleccione una opcion: ");
+		scanf("%d", &opcion);
+		
+		switch (opcion) {
+		case 1:
+			for (int i = 0; i < cantidad; i++) {
+				printf("\n--- Datos de la maquina %d ---\n", i + 1);
+				printf("Nombre (sin espacios, por favor): ");
+				scanf("%s", listaMaquinas[i].NombreMaquina);
+				printf("Tension (en Volts): ");
+				scanf("%f", &listaMaquinas[i].tension);
+				printf("Corriente (en Amperes): ");
+				scanf("%f", &listaMaquinas[i].corriente);
+			}
+			break;
+			
+		case 2:
+			printf("\n REPORTE DE CONSUMO GENERAL \n");
+			for (int i = 0; i < cantidad; i++) {
+				float potencia = listaMaquinas[i].tension * listaMaquinas[i].corriente;
+				printf("Maquina: %s | P: %.1f W\n", listaMaquinas[i].NombreMaquina, potencia);
+			}
+			break;
+			
+		case 3:
+			mostrarDosMaximos(listaMaquinas, cantidad);
+			break;
+			
+		case 4:
+			buscarMaquinaPorNombre(listaMaquinas, cantidad);
+			break;
+			
+		case 5:
+			agregarMasMaquinas(&listaMaquinas, &cantidad);
+			break;
+			
+		case 6:
+			printf("\nSaliendo del programa...\n");
+			break;
+			
+		default:
+			printf("\nOpcion invalida. Intente de nuevo.\n");
+		}
+	}
+	
+	free(listaMaquinas);
+	return 0;
+}
